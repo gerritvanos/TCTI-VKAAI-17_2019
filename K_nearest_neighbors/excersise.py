@@ -1,8 +1,9 @@
 import numpy as np 
 import math
+import copy
 
-def get_training_data():
-    return np.genfromtxt("dataset1.csv", delimiter=';', usecols=[1,2,3,4,5,6,7], 
+def get_data(fname):
+    return np.genfromtxt(fname, delimiter=';', usecols=[1,2,3,4,5,6,7], 
             converters={5: lambda s: 0 if s == b"-1" else float(s), 7: lambda s: 0 if s == b"-1" else float(s)})
 
 def get_labels(fname):
@@ -79,10 +80,9 @@ def most_frequent(List):
         if(curr_frequency> counter): 
             counter = curr_frequency 
             most_freq = i 
-  
     return most_freq
 
-def find_label(normalized_training_data, target,labels,k):
+def find_label(target,k):
     differences =[]
     for item in normalized_training_data:
         differences.append(get_difference(item,target))
@@ -98,20 +98,6 @@ def find_label(normalized_training_data, target,labels,k):
         possible_labels.append(labels[diff_index[i][0]])
 
     return  most_frequent(possible_labels)
-    
-def get_validaion_data():
-    return np.genfromtxt("validation1.csv", delimiter=';', usecols=[1,2,3,4,5,6,7], 
-            converters={5: lambda s: 0 if s == b"-1" else float(s), 7: lambda s: 0 if s == b"-1" else float(s)})
-    
-def procces_validation_data(k):
-    validation_data = get_validaion_data()
-    normalized_validation_data = normalize_data(validation_data,min_max)
-    validation_labels = get_labels('validation1.csv')
-    retrieved_labels =[]
-    for item in normalized_validation_data:
-        retrieved_labels.append(find_label(normalized_training_data,item,labels,k))
-    return (retrieved_labels,validation_labels)
-
 
 def calculate_efficency(label_tuple):
     good_bad =[]
@@ -123,27 +109,68 @@ def calculate_efficency(label_tuple):
     good_amount = good_bad.count(True)
     return good_amount/len(good_bad) * 100
 
-
 def procces_training_data():
-    training_data = get_training_data()
+    training_data_fname = 'dataset1.csv'
+    training_data = get_data(training_data_fname)
     global labels 
-    labels = get_labels('dataset1.csv')
+    labels = get_labels(training_data_fname)
     global min_max
     min_max = get_min_max(training_data)
     global normalized_training_data 
     normalized_training_data = normalize_data(training_data,min_max)
 
+def procces_validation_data(k):
+    validation_data_fname = 'validation1.csv'
+    validation_data = get_data(validation_data_fname)
+    normalized_validation_data = normalize_data(validation_data,min_max)
+    validation_labels = get_labels(validation_data_fname)
+    retrieved_labels =[]
 
-def main():
-    procces_training_data()
+    for item in normalized_validation_data:
+        retrieved_labels.append(find_label(item,k))
+
+    return (retrieved_labels,validation_labels)
+
+def calculate_best_k(start,end):
     eff_dict = {}
-    for k in range(1,101,1):
+    for k in range(start,end+1,1):
         retrieved_labels = procces_validation_data(k)
         efficency = calculate_efficency(retrieved_labels)
         eff_dict[k] = efficency
 
     best_k = max(eff_dict, key=eff_dict.get)
-    print("the best k = " , best_k, " with an efficieny of ", eff_dict[best_k] , " %")
+    return (best_k,eff_dict[best_k] )
+
+def procces_days(k):
+    days_fname = 'days.csv'
+    days_data = get_data(days_fname)
+    normalized_days_data = normalize_data(copy.deepcopy(days_data),min_max)
+    for i in range(len(normalized_days_data)):
+        found_label = find_label(normalized_days_data[i],k)
+        print("found the following label:",found_label)
+        print("the data for this label contained:")
+        print_data_item_with_header(days_data[i])
+
+        
+def print_data_item_with_header(item):
+    print("FG: ",item[0], end=' ')
+    print("TG: ",item[1], end=' ')
+    print("TN: ",item[2], end=' ')
+    print("TX: ",item[3], end=' ')
+    print("SQ: ",item[4], end=' ')
+    print("DR: ",item[5], end=' ')
+    print("RH: ",item[6])
+
+def main():
+    k_start = 1
+    k_end = 100
+
+    procces_training_data()
+    print("calculating best k from " , k_start , " till ", k_end , " based on validation data")
+    best_k_info = calculate_best_k(k_start,k_end)
+    print("the best k = " , best_k_info[0], " with an efficieny of ", best_k_info[1] , " %")
+    print("getting seasons to values in days.csv with the best k value: ",best_k_info[0])
+    procces_days(best_k_info[0])
 
     
 
