@@ -105,7 +105,7 @@ class K_means:
                 + pow((data[3]-target[3]),2) + pow((data[4]-target[4]),2) + pow((data[5]-target[5]),2) \
                 + pow((data[6]-target[6]),2) )
 
-    def classify(self):
+    def cluster(self):
         for i in range(self.k):
             self.centroids[i] = self.data[i]
         
@@ -144,7 +144,7 @@ class K_means:
 
 def main():
     k_m = K_means()
-    k_m.classify()
+    k_m.cluster()
     for cluster in k_m.clusters_with_names:
         print(cluster)
    
