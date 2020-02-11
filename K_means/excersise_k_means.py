@@ -123,10 +123,6 @@ class K_means:
 
                 prev_centroids = dict(self.centroids)
 
-                for cluster in self.clusters:
-                    pass
-                    #self.centroids[cluster] = np.average(self.clusters[cluster],axis=0)
-                
                 optimized = True
 
                 for c in self.centroids:

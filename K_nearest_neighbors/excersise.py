@@ -72,11 +72,11 @@ def sort_by_tuple(lst_of_tup):
 def get_key(item):
     return item[1]
 
-def most_frequent(List): 
+def most_frequent(Lst): 
     counter = 0
-    most_freq = List[0]   
-    for i in List: 
-        curr_frequency = List.count(i) 
+    most_freq = Lst[0]   
+    for i in Lst: 
+        curr_frequency = Lst.count(i) 
         if(curr_frequency> counter): 
             counter = curr_frequency 
             most_freq = i 
