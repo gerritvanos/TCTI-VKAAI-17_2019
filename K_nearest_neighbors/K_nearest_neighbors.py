@@ -59,12 +59,10 @@ def normalize_data(data,min_max):
             data[i][j] = (data[i][j] - min_max[j][0]) / (min_max[j][1] - min_max[j][0])
     return data
 
-    
-def get_difference(data,target):
+def get_distance(data,target):
     return  math.sqrt( pow((data[0]-target[0]),2) + pow((data[1]-target[1]),2) + pow((data[2]-target[2]),2) \
             + pow((data[3]-target[3]),2) + pow((data[4]-target[4]),2) + pow((data[5]-target[5]),2) \
             + pow((data[6]-target[6]),2) )
-
 
 def sort_by_tuple(lst_of_tup):
     return sorted(lst_of_tup,key=get_key)
@@ -85,7 +83,7 @@ def most_frequent(Lst):
 def find_label(target,k):
     differences =[]
     for item in normalized_training_data:
-        differences.append(get_difference(item,target))
+        differences.append(get_distance(item,target))
         
     diff_index =[]
     for i in range(len(differences)):
@@ -99,7 +97,7 @@ def find_label(target,k):
 
     return  most_frequent(possible_labels)
 
-def calculate_efficency(label_tuple):
+def calculate_efficiency(label_tuple):
     good_bad =[]
     for i in range(len(label_tuple[0])):
         if label_tuple[0][i] == label_tuple[1][i]:
@@ -135,8 +133,8 @@ def calculate_best_k(start,end):
     eff_dict = {}
     for k in range(start,end+1,1):
         retrieved_labels = procces_validation_data(k)
-        efficency = calculate_efficency(retrieved_labels)
-        eff_dict[k] = efficency
+        efficiency = calculate_efficiency(retrieved_labels)
+        eff_dict[k] = efficiency
 
     best_k = max(eff_dict, key=eff_dict.get)
     return (best_k,eff_dict[best_k] )
@@ -151,7 +149,6 @@ def procces_days(k):
         print("the data for this label contained:")
         print_data_item_with_header(days_data[i])
 
-        
 def print_data_item_with_header(item):
     print("FG: ",item[0], end=' ')
     print("TG: ",item[1], end=' ')
@@ -172,8 +169,5 @@ def main():
     print("getting seasons to values in days.csv with the best k value: ",best_k_info[0])
     procces_days(best_k_info[0])
 
-    
-
-    
 if __name__ == "__main__":
     main()
