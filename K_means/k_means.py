@@ -159,14 +159,18 @@ class K_means:
 
 
         plot.plot(k_s,centroid_distances)
+        plot.ylabel("total centroid distance")
+        plot.xlabel("K")
         plot.show()
             
 def main():
     k_m = K_means()
     k_m.cluster()
-    k_m.elbow(10)
+    print("best k = 5 based on elbow method as the graph will show. \nThe 5 clusters with their voted name will be printed below")
     for cluster in k_m.clusters_with_names:
         print(cluster)
+    k_m.elbow(20)
+
    
 
 if __name__ == "__main__":
