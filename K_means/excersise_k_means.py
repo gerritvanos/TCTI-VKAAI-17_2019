@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import matplotlib.pyplot as plot
 import copy
 
 def most_frequent(Lst): 
@@ -37,7 +38,7 @@ class label_data:
 
 
 class K_means:
-    def __init__(self,k=5,tol=0.001, max_iter=300, fname = 'dataset1.csv'):
+    def __init__(self,k=5,tol=0.0001, max_iter=300, fname = 'dataset1.csv'):
         self.k = k
         self.tol = tol 
         self.centroids = {}
@@ -106,6 +107,8 @@ class K_means:
                 + pow((data[6]-target[6]),2) )
 
     def cluster(self):
+        self.centroids = {}
+        self.clusters_with_names = []
         for i in range(self.k):
             self.centroids[i] = self.data[i]
         
@@ -132,8 +135,8 @@ class K_means:
                         optimized = False
 
             if optimized == True:
-                print("end reached")
                 break
+
         for cluster in self.clusters:
             most_freq_label = []
             for data_point in self.clusters[cluster]:
@@ -141,10 +144,27 @@ class K_means:
             cluster_with_name = (most_frequent(most_freq_label), cluster)
             self.clusters_with_names.append(cluster_with_name)
 
+    def elbow(self,max_k):
+        centroid_distances =[]
+        k_s =[]
+        for k in range(1,max_k+1):
+            self.k = k
+            self.cluster()
+            k_s.append(k)
+            total_cluster_centroid_distance = 0
+            for cluster in self.clusters:
+                for data_point in self.clusters[cluster]:
+                    total_cluster_centroid_distance += self.get_distance(data_point.normalized_data,self.centroids[cluster])
+            centroid_distances.append(total_cluster_centroid_distance)
 
+
+        plot.plot(k_s,centroid_distances)
+        plot.show()
+            
 def main():
     k_m = K_means()
     k_m.cluster()
+    k_m.elbow(10)
     for cluster in k_m.clusters_with_names:
         print(cluster)
    
