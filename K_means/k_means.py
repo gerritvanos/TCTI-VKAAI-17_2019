@@ -38,9 +38,10 @@ class label_data:
 
 
 class K_means:
-    def __init__(self,k=5,tol=0.0001, max_iter=300, fname = 'dataset1.csv'):
+    def __init__(self,k=3,tol=0.00000000, max_iter=30000, fname = 'dataset1.csv'):
         self.k = k
         self.tol = tol 
+        self.optimized = False
         self.centroids = {}
         self.clusters = {}
         self.clusters_with_names = []
@@ -106,6 +107,20 @@ class K_means:
                 + pow((data[3]-target[3]),2) + pow((data[4]-target[4]),2) + pow((data[5]-target[5]),2) \
                 + pow((data[6]-target[6]),2) )
 
+    def calculate_average_from_2d_array(self,array):
+        sums =[]
+        average = []
+        for i in range(len(array[0])):
+            sums.append(0)
+            average.append(0)
+        for i in range(len(array)):
+            for j in range(len(array[i])):
+                sums[j] += array[i][j]
+        for i in range(len(sums)):
+            average[i] = sums[i]/len(array)
+        return np.array(average)
+
+
     def cluster(self):
         self.centroids = {}
         self.clusters_with_names = []
@@ -114,29 +129,36 @@ class K_means:
         
         for i in range(self.max_iter):
             self.clusters = {}
+            prev_centroids = copy.deepcopy(self.centroids)
 
-            for i in range(self.k):
-                self.clusters[i] =[]
+            for k in range(self.k):
+                self.clusters[k] =[]
             for data_point in self.data_with_info:
                 distances = []
                 for centroid in self.centroids:
                     distances.append(self.get_distance(data_point.normalized_data,self.centroids[centroid]))
                 cluster = distances.index(min(distances))
                 self.clusters[cluster].append(data_point)
+   
+            for cluster in self.clusters:
+                data_array = []
+                for i in range(len(self.clusters[cluster])):
+                    data_array.append(self.clusters[cluster][i].normalized_data)
+                self.centroids[cluster] = self.calculate_average_from_2d_array(data_array)
+            
 
-                prev_centroids = dict(self.centroids)
-
-                optimized = True
-
+            if i >= 1:
+                self.optimized = True
                 for c in self.centroids:
                     original_centroid = prev_centroids[c]
                     current_centroid = self.centroids[c]
                     if self.get_distance(current_centroid,original_centroid)*100.0 > self.tol:
-                        optimized = False
-
-            if optimized == True:
+                        self.optimized = False
+            
+            if self.optimized == True:
+                print("bij k= ", self.k , " aantal iteraties: ",i)
                 break
-
+            
         for cluster in self.clusters:
             most_freq_label = []
             for data_point in self.clusters[cluster]:
@@ -147,14 +169,15 @@ class K_means:
     def elbow(self,max_k):
         centroid_distances =[]
         k_s =[]
-        for k in range(1,max_k+1):
+        for k in range(2,max_k+1):
             self.k = k
             self.cluster()
             k_s.append(k)
-            total_cluster_centroid_distance = 0
+            total_cluster_centroid_distances = []
             for cluster in self.clusters:
                 for data_point in self.clusters[cluster]:
-                    total_cluster_centroid_distance += self.get_distance(data_point.normalized_data,self.centroids[cluster])
+                    total_cluster_centroid_distances.append(self.get_distance(data_point.normalized_data,self.centroids[cluster]))
+                total_cluster_centroid_distance = pow(np.mean(total_cluster_centroid_distances),2)
             centroid_distances.append(total_cluster_centroid_distance)
 
 
@@ -166,10 +189,10 @@ class K_means:
 def main():
     k_m = K_means()
     k_m.cluster()
-    print("best k = 5 based on elbow method as the graph will show. \nThe 5 clusters with their voted name will be printed below")
+    print("best k = 3 based on elbow method as the graph will show. \nThe 3 clusters with their voted name will be printed below")
     for cluster in k_m.clusters_with_names:
         print(cluster)
-    k_m.elbow(20)
+    k_m.elbow(10)
 
    
 
