@@ -2,6 +2,7 @@ import numpy as np
 import math
 import matplotlib.pyplot as plot
 import copy
+import random
 
 def most_frequent(Lst): 
     counter = 0
@@ -12,6 +13,12 @@ def most_frequent(Lst):
             counter = curr_frequency 
             most_freq = i 
     return most_freq
+
+def inList(array, lst):
+    for element in lst:
+        if np.array_equal(element, array):
+            return True
+    return False
 
 class label_data:
     def __init__(self,original_data,label,normalized_data):
@@ -38,7 +45,7 @@ class label_data:
 
 
 class K_means:
-    def __init__(self,k=3,tol=0.00000000, max_iter=30000, fname = 'dataset1.csv'):
+    def __init__(self,k=3,tol=0.001, max_iter=30000, fname = 'dataset1.csv'):
         self.k = k
         self.tol = tol 
         self.optimized = False
@@ -47,6 +54,11 @@ class K_means:
         self.clusters_with_names = []
         self.prev_centroids = {}
         self.max_iter = max_iter
+        self.itter = 5
+        self.start_points = []
+        self.total_distances = []
+        self.best_start_points = {}
+        self.random_points = []
 
         self.fname = fname
         self.data = self.get_data()
@@ -120,45 +132,68 @@ class K_means:
             average[i] = sums[i]/len(array)
         return np.array(average)
 
+    def set_start_centroids(self):
+        self.centroids = {}
+        self.random_points = list()
+        for i in range(self.k):
+            #generate random points until a point is found that is not used yet
+            random_point = self.data[random.randint(0,len(self.data)-1)]
+            while inList(random_point,self.random_points):
+                random_point = self.data[random.randint(0,len(self.data)-1)]
+            self.random_points.append(random_point)
+
+            self.centroids[i] = random_point #set found point as centroid
+        self.start_points.append(self.centroids) # save centroids
+
+    def find_best_start_point(self):
+        self.start_points = []
+        self.total_distances = []
+        for i in range(self.itter):
+            self.set_start_centroids()
+            self.cluster()
+            self.total_distances.append(self.calculate_total_centroid_distance_for_all_clusters(self.clusters))
+        self.best_start_points = self.start_points[self.total_distances.index(min(self.total_distances))]
+        self.centroids = self.best_start_points
+        return self.best_start_points
+
 
     def cluster(self):
-        self.centroids = {}
-        self.clusters_with_names = []
-        for i in range(self.k):
-            self.centroids[i] = self.data[i]
-        
         for i in range(self.max_iter):
-            self.clusters = {}
+            self.clusters = {} # clear clusters
             prev_centroids = copy.deepcopy(self.centroids)
-
+            
             for k in range(self.k):
-                self.clusters[k] =[]
+                self.clusters[k] =[] #create k empty klusters 
+            #add data point to cluster where centroid is closest     
             for data_point in self.data_with_info:
                 distances = []
                 for centroid in self.centroids:
                     distances.append(self.get_distance(data_point.normalized_data,self.centroids[centroid]))
                 cluster = distances.index(min(distances))
                 self.clusters[cluster].append(data_point)
-   
+
+            #move centroid to middle of cluster 
             for cluster in self.clusters:
                 data_array = []
                 for i in range(len(self.clusters[cluster])):
                     data_array.append(self.clusters[cluster][i].normalized_data)
-                self.centroids[cluster] = self.calculate_average_from_2d_array(data_array)
+                if data_array != []:
+                    self.centroids[cluster] = self.calculate_average_from_2d_array(data_array)
             
+            #check if centroids moved
+            self.optimized = True
+            for c in self.centroids:
+                original_centroid = prev_centroids[c]
+                current_centroid = self.centroids[c]
+                if self.get_distance(current_centroid,original_centroid)*100.0 > self.tol:
+                    self.optimized = False
 
-            if i >= 1:
-                self.optimized = True
-                for c in self.centroids:
-                    original_centroid = prev_centroids[c]
-                    current_centroid = self.centroids[c]
-                    if self.get_distance(current_centroid,original_centroid)*100.0 > self.tol:
-                        self.optimized = False
-            
+            #if centroids not moved break
             if self.optimized == True:
-                print("bij k= ", self.k , " aantal iteraties: ",i)
                 break
-            
+    
+    def vote_names(self):     
+        self.clusters_with_names = []       
         for cluster in self.clusters:
             most_freq_label = []
             for data_point in self.clusters[cluster]:
@@ -166,33 +201,42 @@ class K_means:
             cluster_with_name = (most_frequent(most_freq_label), cluster)
             self.clusters_with_names.append(cluster_with_name)
 
+    def calculate_total_centroid_distance_for_all_clusters(self,clusters):
+        total =0
+        for cluster in clusters:
+            total += pow(self.calculate_total_centroid_distance(self.clusters[cluster],self.centroids[cluster]),2)
+        return total
+
+    def calculate_total_centroid_distance(self,cluster,centroid):
+        total_centroid_distance = 0
+        for data_point in cluster:
+            total_centroid_distance += pow(self.get_distance(centroid,data_point.normalized_data),2)
+        return total_centroid_distance
+
     def elbow(self,max_k):
         centroid_distances =[]
         k_s =[]
         for k in range(2,max_k+1):
             self.k = k
+            self.find_best_start_point()
             self.cluster()
             k_s.append(k)
-            total_cluster_centroid_distances = []
-            for cluster in self.clusters:
-                for data_point in self.clusters[cluster]:
-                    total_cluster_centroid_distances.append(self.get_distance(data_point.normalized_data,self.centroids[cluster]))
-                total_cluster_centroid_distance = pow(np.mean(total_cluster_centroid_distances),2)
-            centroid_distances.append(total_cluster_centroid_distance)
+            centroid_distances.append(pow(self.calculate_total_centroid_distance_for_all_clusters(self.clusters),2))
 
-
-        plot.plot(k_s,centroid_distances)
+        plot.plot(k_s,centroid_distances, marker='o', linewidth = 2)
         plot.ylabel("total centroid distance")
         plot.xlabel("K")
         plot.show()
             
 def main():
     k_m = K_means()
+    k_m.find_best_start_point()
     k_m.cluster()
+    k_m.vote_names()
     print("best k = 3 based on elbow method as the graph will show. \nThe 3 clusters with their voted name will be printed below")
     for cluster in k_m.clusters_with_names:
         print(cluster)
-    k_m.elbow(10)
+    k_m.elbow(15)
 
    
 
