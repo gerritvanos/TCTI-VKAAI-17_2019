@@ -45,7 +45,7 @@ class label_data:
 
 
 class K_means:
-    def __init__(self,k=3,tol=0.001, max_iter=30000, fname = 'dataset1.csv'):
+    def __init__(self,k=3,tol=0.001, max_iter=30000, itter_per_k = 10, fname = 'dataset1.csv'):
         self.k = k
         self.tol = tol 
         self.optimized = False
@@ -54,7 +54,7 @@ class K_means:
         self.clusters_with_names = []
         self.prev_centroids = {}
         self.max_iter = max_iter
-        self.itter = 5
+        self.itter = itter_per_k
         self.start_points = []
         self.total_distances = []
         self.best_start_points = {}
