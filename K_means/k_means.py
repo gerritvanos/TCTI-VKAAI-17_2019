@@ -221,7 +221,7 @@ class K_means:
             self.find_best_start_point()
             self.cluster()
             k_s.append(k)
-            centroid_distances.append(pow(self.calculate_total_centroid_distance_for_all_clusters(self.clusters),2))
+            centroid_distances.append(self.calculate_total_centroid_distance_for_all_clusters(self.clusters))
 
         plot.plot(k_s,centroid_distances, marker='o', linewidth = 2)
         plot.ylabel("total centroid distance")
@@ -233,7 +233,8 @@ def main():
     k_m.find_best_start_point()
     k_m.cluster()
     k_m.vote_names()
-    print("best k = 3 based on elbow method as the graph will show. \nThe 3 clusters with their voted name will be printed below")
+    print("best k = 3 based on elbow method as the graph will show. \nThe 3 clusters with their voted name will be printed below" )
+    print("at this point the differential is not that high anymore also the cluster names are what i excpect")
     for cluster in k_m.clusters_with_names:
         print(cluster)
     k_m.elbow(15)
