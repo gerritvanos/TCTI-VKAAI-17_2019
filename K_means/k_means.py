@@ -234,7 +234,8 @@ def main():
     k_m.cluster()
     k_m.vote_names()
     print("best k = 3 based on elbow method as the graph will show. \nThe 3 clusters with their voted name will be printed below" )
-    print("at this point the differential is not that high anymore also the cluster names are what i excpect")
+    print("at this point the differential is not that high anymore also the cluster names are what I excpect")
+    print("k=4 or k=5 looks to be better in the graph but the cluster names seem a bit off because only 2 seasons are present then")
     for cluster in k_m.clusters_with_names:
         print(cluster)
     k_m.elbow(15)
