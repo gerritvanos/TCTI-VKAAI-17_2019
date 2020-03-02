@@ -2,6 +2,7 @@ import random
 import numpy as np
 import copy
 import math
+import timeit
 
 def sigmoid(x):
     return 1.0 / (1.0 + math.exp(-x))
@@ -43,14 +44,11 @@ class neuron:
         
 
 class  neural_network:
-    def __init__(self,input_layer_size, output_layer_size):
+    def __init__(self,input_layer_size, output_layer_size, learn_rate=0.1):
         self.output_layer = []
         self.hidden_layer = []
         self.predicted_outputs = []
-        self.learn_rate = 0.1
-        # self.hidden_layer.append(neuron(2,[20, 20],-10))
-        # self.hidden_layer.append(neuron(2,[-20,  -20],30))
-        # self.output_layer.append(neuron(2,[20 ,20],-30))
+        self.learn_rate = learn_rate
         for i in range(input_layer_size):
             self.hidden_layer.append(neuron(input_layer_size))
         for i in range(output_layer_size):
@@ -154,40 +152,64 @@ def test_iris_NN(NN, test_data, test_outpus):
     # return (aantal in test_set,aantal goed, aantal fout, percentage goed)
     return [total,good,fault,round(good/total * 100,1)]
 
+def run_iris():
+    print("loading iris data")
+    data = load_data("iris.data")
+    labels = load_labels("iris.data")
+    outputs = labels_to_NN_output(labels)
+    print("splitting data set in 2 parts")
+    split_sets = split_data_set(outputs,data)
 
-print("loading iris data")
-data = load_data("iris.data")
-labels = load_labels("iris.data")
-outputs = labels_to_NN_output(labels)
-print("splitting data set in 2 parts")
-split_sets = split_data_set(outputs,data)
+    train_data = split_sets[0][0]
+    train_outpus = split_sets[0][1]
 
-train_data = split_sets[0][0]
-train_outpus = split_sets[0][1]
+    test_data = split_sets[1][0]
+    test_outpus = split_sets[1][1]
 
-test_data = split_sets[1][0]
-test_outpus = split_sets[1][1]
+    number_of_itterations = 10000
+    iris_NN = neural_network(4,3)
+    #the network consists of 4 input neurons, 1 hidden layer containing 4 neurons and a outputlayer containing 3 neurons
+    #since there are 3 flower types the output should be 3 neurons
+    #since each data point had 4 parameters the input should be 4 neurons
 
-number_of_itterations = 10000
-iris_NN = neural_network(4,3)
-print("train network with ", number_of_itterations, " using the train set")
-iris_NN.train(train_data,train_outpus,number_of_itterations)
-print("testing network with test data set")
-test_results = test_iris_NN(iris_NN,test_data,test_outpus)
+    print("train network with ", number_of_itterations, " using the train set")
+    iris_NN.train(train_data,train_outpus,number_of_itterations)
+    print("testing network with test data set")
+    test_results = test_iris_NN(iris_NN,test_data,test_outpus)
 
-print("test results:")
-print("entry's         : ",test_results[0])
-print("good predictions: ",test_results[1])
-print("bad  predictions: ",test_results[2])
-print("good  Percentage: ",test_results[3],"%")
+    print("test results:")
+    print("entry's         : ",test_results[0])
+    print("good predictions: ",test_results[1])
+    print("bad  predictions: ",test_results[2])
+    print("good  Percentage: ",test_results[3],"%")
 
-#XOR rommel
-print("XOR validation:")
-test = neural_network(2,1)
-test_set = ([1,1],[1,0],[0,0],[0,1])
-output = ([0],[1],[0],[1])
-test.train(test_set,output,250000)
-print("input: 0,0  expected = 0  predicted: ",round(test.run_once([0,0])[0],2))
-print("input: 1,0  expected = 1  predicted: ",round(test.run_once([1,0])[0],2))
-print("input: 0,1  expected = 1  predicted: ",round(test.run_once([0,1])[0],2))
-print("input: 1,1  expected = 0  predicted: ",round(test.run_once([1,1])[0],2))
+def run_XOR():
+    print("XOR validation:")
+    #having a higher learn rate make the set learn quicker
+    test = neural_network(2,1,0.3)
+    test_set = ([1,1],[1,0],[0,0],[0,1])
+    output = ([0],[1],[0],[1])
+    # the XOR needs a lot more itterations or a higher learn rate before it has learned correctly
+    # this is a known problem with a sigmoid based small network that needs to learn this problem
+    # sometimes even 100.000 itterations is not enough
+    test.train(test_set,output,100000)
+    print("input: 0,0  expected = 0  predicted: ",round(test.run_once([0,0])[0],2))
+    print("input: 1,0  expected = 1  predicted: ",round(test.run_once([1,0])[0],2))
+    print("input: 0,1  expected = 1  predicted: ",round(test.run_once([0,1])[0],2))
+    print("input: 1,1  expected = 0  predicted: ",round(test.run_once([1,1])[0],2))
+
+def main():
+    # start = timeit.default_timer()
+    # run_iris()
+    # end = timeit.default_timer()
+    # print("time needed     : ",round(end-start,1), " secconds")
+    
+    # print()
+
+    start = timeit.default_timer()
+    run_XOR()
+    end = timeit.default_timer()
+    print("XOR time needed: ",round(end-start,1), " secconds")
+
+if __name__ == "__main__":
+    main()
