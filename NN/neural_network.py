@@ -129,7 +129,7 @@ def split_data_set(outputs,data):
             test_outputs.append(outputs[i])
     return [[train_data,train_outputs],[test_data,test_outputs]]
 
-def compare(predicted,actual, toll =0.025):
+def compare(predicted,actual):
     one_index = predicted.index(max(predicted))
     for i in range(len(predicted)):
         if i == one_index:
@@ -199,12 +199,12 @@ def run_XOR():
     print("input: 1,1  expected = 0  predicted: ",round(test.run_once([1,1])[0],2))
 
 def main():
-    # start = timeit.default_timer()
-    # run_iris()
-    # end = timeit.default_timer()
-    # print("time needed     : ",round(end-start,1), " secconds")
+    start = timeit.default_timer()
+    run_iris()
+    end = timeit.default_timer()
+    print("time needed     : ",round(end-start,1), " secconds")
     
-    # print()
+    print()
 
     start = timeit.default_timer()
     run_XOR()
