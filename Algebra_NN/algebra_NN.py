@@ -65,7 +65,9 @@ print("accuracy:",round(score[1]*100,2), "%")
 
 #my neural network constists of the following layers
 # 784 -- 16 -- 16 -- 10
-# the 784 is based on 28*28 pixels
+# the 784 is based on 28*28 pixels inputs
 # the 10 output neurons are based on the fact that we need to recognize 10 different characters
 # the 2 hidden layers with both 16 neurons is roughly based on the following video https://www.youtube.com/watch?v=aircAruvnKk& 
 # this video explains the theory behind the OCR
+# this is based on the diffrent lines that are used by all the numbers. for example a 3 and a 5 use most of the same lines but are different.
+# based on this theory two layers of 16 should be enough to distingush all numbers.
