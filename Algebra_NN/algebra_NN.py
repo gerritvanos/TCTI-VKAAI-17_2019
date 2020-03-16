@@ -49,6 +49,7 @@ def get_outputs(input_set):
 
 train_outputs = get_outputs(train_set)
 test_outputs = get_outputs(test_set)
+validation_outputs = get_outputs(valid_set)
 
 model = keras.Sequential()
 model.add(keras.layers.Dense(units=784, activation='sigmoid'))
@@ -57,7 +58,7 @@ model.add(keras.layers.Dense(units= 16, activation='sigmoid'))
 model.add(keras.layers.Dense(units= 10, activation='sigmoid'))
 model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
 
-model.fit(train_set[0],np.array(train_outputs), epochs=5, batch_size=32, verbose=1)
+model.fit(train_set[0],np.array(train_outputs), validation_data=(valid_set[0],np.array(validation_outputs)) ,epochs=100, batch_size=32, verbose=1)
 
 score = model.evaluate(test_set[0], np.array(test_outputs))
 
