@@ -1,13 +1,16 @@
 import random
 import math
 import numpy as np
-
+import copy
+#uitgebreidere uitleg over keuzes staan in het word document
 class GeneticAlgorithm:
-    population_size = 100
+    population_size = 150
 
     genotype_length = 10
 
-    mutation_rate = 0.4
+    mutation_rate = 0.1
+
+    retain_rate = 0.5
 
     total_generations = 2000
     # the sum pile, end result for the SUM pile
@@ -37,6 +40,7 @@ class GeneticAlgorithm:
             for i in range(len(self.population)):
                 self.fittnesses.append(self.fittness(i))
                 if self.fittness(i) == 0.0:
+                    print(i)
                     print("done")
                     self.display(i)
                     self.finished = True
@@ -47,15 +51,21 @@ class GeneticAlgorithm:
 
     def evolve(self):
         new_population =[]
+        old_population = copy.deepcopy(self.population)
         probability = 1/np.array(self.fittnesses)
         probability /= np.sum(probability)
         indexes = np.arange(self.population_size)
-
-        for _ in range(self.population_size):
-            parent_indexes = np.random.choice(indexes, size=2, replace=False, p=probability)
+        #make children from whole population
+        for _ in range(self.population_size - int(self.population_size * self.retain_rate)):
+            parent_indexes = np.random.choice(indexes, size=2, replace=False)
             new_population.append(self.crossover(self.population[parent_indexes[0]], self.population[parent_indexes[1]]))
 
         self.population = new_population
+
+        #retain best part of old population
+        retain_indexes = np.argpartition(np.array(self.fittnesses),int(self.population_size * self.retain_rate))
+        for i in range(int(self.population_size * self.retain_rate)):
+            self.population.append(old_population[retain_indexes[i]])
 
         #mutate
         indexes = np.arange(10)
